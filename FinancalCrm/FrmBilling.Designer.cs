@@ -37,10 +37,11 @@
             this.btnBanksForm = new System.Windows.Forms.Button();
             this.btnCategoriesForm = new System.Windows.Forms.Button();
             this.panel2 = new System.Windows.Forms.Panel();
+            this.btnList = new System.Windows.Forms.Button();
             this.btnUpdateBill = new System.Windows.Forms.Button();
             this.btnRemoveBill = new System.Windows.Forms.Button();
             this.btnCreateBill = new System.Windows.Forms.Button();
-            this.btnBillList = new System.Windows.Forms.Button();
+            this.btnGetDeletedBills = new System.Windows.Forms.Button();
             this.txtBillPeriod = new System.Windows.Forms.TextBox();
             this.label4 = new System.Windows.Forms.Label();
             this.txtBillAmount = new System.Windows.Forms.TextBox();
@@ -165,10 +166,11 @@
             // 
             // panel2
             // 
+            this.panel2.Controls.Add(this.btnList);
             this.panel2.Controls.Add(this.btnUpdateBill);
             this.panel2.Controls.Add(this.btnRemoveBill);
             this.panel2.Controls.Add(this.btnCreateBill);
-            this.panel2.Controls.Add(this.btnBillList);
+            this.panel2.Controls.Add(this.btnGetDeletedBills);
             this.panel2.Controls.Add(this.txtBillPeriod);
             this.panel2.Controls.Add(this.label4);
             this.panel2.Controls.Add(this.txtBillAmount);
@@ -182,12 +184,25 @@
             this.panel2.Size = new System.Drawing.Size(696, 209);
             this.panel2.TabIndex = 2;
             // 
+            // btnList
+            // 
+            this.btnList.BackColor = System.Drawing.Color.Silver;
+            this.btnList.Font = new System.Drawing.Font("Calibri", 10.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(162)));
+            this.btnList.ForeColor = System.Drawing.Color.Black;
+            this.btnList.Location = new System.Drawing.Point(6, 160);
+            this.btnList.Name = "btnList";
+            this.btnList.Size = new System.Drawing.Size(133, 37);
+            this.btnList.TabIndex = 12;
+            this.btnList.Text = "Listele";
+            this.btnList.UseVisualStyleBackColor = false;
+            this.btnList.Click += new System.EventHandler(this.btnList_Click);
+            // 
             // btnUpdateBill
             // 
             this.btnUpdateBill.BackColor = System.Drawing.Color.Silver;
             this.btnUpdateBill.Font = new System.Drawing.Font("Calibri", 10.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(162)));
             this.btnUpdateBill.ForeColor = System.Drawing.Color.Black;
-            this.btnUpdateBill.Location = new System.Drawing.Point(482, 160);
+            this.btnUpdateBill.Location = new System.Drawing.Point(419, 160);
             this.btnUpdateBill.Name = "btnUpdateBill";
             this.btnUpdateBill.Size = new System.Drawing.Size(133, 37);
             this.btnUpdateBill.TabIndex = 11;
@@ -200,7 +215,7 @@
             this.btnRemoveBill.BackColor = System.Drawing.Color.Silver;
             this.btnRemoveBill.Font = new System.Drawing.Font("Calibri", 10.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(162)));
             this.btnRemoveBill.ForeColor = System.Drawing.Color.Black;
-            this.btnRemoveBill.Location = new System.Drawing.Point(345, 160);
+            this.btnRemoveBill.Location = new System.Drawing.Point(282, 160);
             this.btnRemoveBill.Name = "btnRemoveBill";
             this.btnRemoveBill.Size = new System.Drawing.Size(133, 37);
             this.btnRemoveBill.TabIndex = 10;
@@ -213,7 +228,7 @@
             this.btnCreateBill.BackColor = System.Drawing.Color.Silver;
             this.btnCreateBill.Font = new System.Drawing.Font("Calibri", 10.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(162)));
             this.btnCreateBill.ForeColor = System.Drawing.Color.Black;
-            this.btnCreateBill.Location = new System.Drawing.Point(208, 160);
+            this.btnCreateBill.Location = new System.Drawing.Point(145, 160);
             this.btnCreateBill.Name = "btnCreateBill";
             this.btnCreateBill.Size = new System.Drawing.Size(133, 37);
             this.btnCreateBill.TabIndex = 9;
@@ -221,18 +236,18 @@
             this.btnCreateBill.UseVisualStyleBackColor = false;
             this.btnCreateBill.Click += new System.EventHandler(this.btnCreateBill_Click);
             // 
-            // btnBillList
+            // btnGetDeletedBills
             // 
-            this.btnBillList.BackColor = System.Drawing.Color.Silver;
-            this.btnBillList.Font = new System.Drawing.Font("Calibri", 10.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(162)));
-            this.btnBillList.ForeColor = System.Drawing.Color.Black;
-            this.btnBillList.Location = new System.Drawing.Point(70, 160);
-            this.btnBillList.Name = "btnBillList";
-            this.btnBillList.Size = new System.Drawing.Size(133, 37);
-            this.btnBillList.TabIndex = 8;
-            this.btnBillList.Text = "Ödeme Listesi";
-            this.btnBillList.UseVisualStyleBackColor = false;
-            this.btnBillList.Click += new System.EventHandler(this.btnBillList_Click);
+            this.btnGetDeletedBills.BackColor = System.Drawing.Color.Silver;
+            this.btnGetDeletedBills.Font = new System.Drawing.Font("Calibri", 10.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(162)));
+            this.btnGetDeletedBills.ForeColor = System.Drawing.Color.Black;
+            this.btnGetDeletedBills.Location = new System.Drawing.Point(558, 160);
+            this.btnGetDeletedBills.Name = "btnGetDeletedBills";
+            this.btnGetDeletedBills.Size = new System.Drawing.Size(133, 37);
+            this.btnGetDeletedBills.TabIndex = 8;
+            this.btnGetDeletedBills.Text = "Silinenler";
+            this.btnGetDeletedBills.UseVisualStyleBackColor = false;
+            this.btnGetDeletedBills.Click += new System.EventHandler(this.btnGetDeletedBills_Click);
             // 
             // txtBillPeriod
             // 
@@ -331,6 +346,7 @@
             this.dataGridView1.RowTemplate.Height = 24;
             this.dataGridView1.Size = new System.Drawing.Size(693, 282);
             this.dataGridView1.TabIndex = 2;
+            this.dataGridView1.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridView1_CellClick);
             // 
             // FrmBilling
             // 
@@ -366,7 +382,7 @@
         private System.Windows.Forms.Button btnBanksForm;
         private System.Windows.Forms.Button btnCategoriesForm;
         private System.Windows.Forms.Panel panel2;
-        private System.Windows.Forms.Button btnBillList;
+        private System.Windows.Forms.Button btnGetDeletedBills;
         private System.Windows.Forms.TextBox txtBillPeriod;
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.TextBox txtBillAmount;
@@ -380,5 +396,6 @@
         private System.Windows.Forms.Button btnRemoveBill;
         private System.Windows.Forms.Button btnCreateBill;
         private System.Windows.Forms.DataGridView dataGridView1;
+        private System.Windows.Forms.Button btnList;
     }
 }

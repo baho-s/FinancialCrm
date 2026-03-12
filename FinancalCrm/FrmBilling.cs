@@ -7,14 +7,20 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using BusinessLayer.Abstract;
+using BusinessLayer.Concrete;
+using DataAccessLayer.EntityFramework;
+using FinancalCrm.Entity.Concrete;
 using FinancalCrm.Models;
 
 namespace FinancalCrm
 {
     public partial class FrmBilling : Form
     {
+        private readonly IBillService _billService;
         public FrmBilling()
         {
+            _billService = new BillManager(new EfBillDal());
             InitializeComponent();
         }
 
@@ -22,65 +28,104 @@ namespace FinancalCrm
 
         private void FrmBilling_Load(object sender, EventArgs e)
         {
-            var value=db.Bills.ToList();
-            dataGridView1.DataSource=value;
+            var valueBill=_billService.TGetActiveBillsDto();
+            dataGridView1.DataSource=valueBill;
 
         }
 
-        private void btnBillList_Click(object sender, EventArgs e)
-        {
-            var value = db.Bills.ToList();
-            dataGridView1.DataSource = value;
-        }
+        
 
         private void btnCreateBill_Click(object sender, EventArgs e)
         {
-            string title=txtBillTitle.Text;
-            decimal amount=decimal.Parse(txtBillAmount.Text);
-            string period=txtBillPeriod.Text;
+            try
+            {
+                if (string.IsNullOrWhiteSpace(txtBillTitle.Text) ||
+                    string.IsNullOrWhiteSpace(txtBillPeriod.Text) ||
+                    string.IsNullOrWhiteSpace(txtBillAmount.Text))
+                {
+                    MessageBox.Show("Lütfen Id hariç diğer alanları doldurunuz.");
+                    return;
+                }
 
-            Bills bills=new Bills();
-            bills.BillTitle=title;
-            bills.BillPeriod=period;
-            bills.BillAmount=amount;
+                Bill bill = new Bill
+                {
+                    BillAmount = decimal.Parse(txtBillAmount.Text),
+                    BillPeriod = txtBillPeriod.Text,
+                    BillTitle = txtBillTitle.Text
+                };
 
-            db.Bills.Add(bills);
-            db.SaveChanges();
-            MessageBox.Show("Ödeme başarılı bir şekilde sisteme eklendi");
 
-            var value = db.Bills.ToList();
-            dataGridView1.DataSource = value;
+                _billService.TInsert(bill);
+
+                MessageBox.Show("Fatura Başarıyla Eklendi.");
+                dataGridView1.DataSource = _billService.TGetActiveBillsDto();
+
+                txtBillId.Clear();
+                txtBillTitle.Clear();
+                txtBillAmount.Clear();
+                txtBillPeriod.Clear();
+                txtBillTitle.Focus();
+
+
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+
+
         }
 
         private void btnRemoveBill_Click(object sender, EventArgs e)
         {
-            int id = int.Parse(txtBillId.Text);
-            var removeValue=db.Bills.Find(id);
-            db.Bills.Remove(removeValue);
-            db.SaveChanges();
-            MessageBox.Show("Ödeme başarılı bir şekilde silindi");
+            if (string.IsNullOrWhiteSpace(txtBillId.Text))
+            {
+                MessageBox.Show("Silinecek Fatura İd'sini Giriniz");
+                return;
+            }
 
-            var value = db.Bills.ToList();
-            dataGridView1.DataSource = value;
+            int id = int.Parse(txtBillId.Text);
+            var bill = _billService.TGetById(id);
+            if (bill.IsDeleted == true)
+            {
+                MessageBox.Show("Bu kayıt oluşturulmamış veya silinmiş.");
+                return;
+            }
+            _billService.TDelete(bill);
+            MessageBox.Show("Ürün Başarıyla Silindi.");
+
+            dataGridView1.DataSource = _billService.TGetActiveBillsDto();
 
         }
 
         private void btnUpdateBill_Click(object sender, EventArgs e)
         {
-            string title = txtBillTitle.Text;
-            decimal amount = decimal.Parse(txtBillAmount.Text);
-            string period = txtBillPeriod.Text;
-            int id=int.Parse(txtBillId.Text);
-            var updateValue=db.Bills.Find(id);
-            
-            updateValue.BillTitle=title; 
-            updateValue.BillAmount=amount;
-            updateValue.BillPeriod = period;
-            db.SaveChanges();
-            MessageBox.Show("Ödeme faturası güncellendi");
 
-            var values2=db.Bills.ToList();
-            dataGridView1.DataSource=values2;
+
+            int id = int.Parse(txtBillId.Text);
+
+            var updateBill = _billService.TGetById(id);
+
+            if (updateBill == null)
+            {
+                MessageBox.Show("Kayıt bulunamadı.");
+                return;
+            }
+            if (updateBill.IsDeleted)
+            {
+                MessageBox.Show("Güncellenecek kayıt bulunamadı.");
+                return;
+            }
+
+            updateBill.BillAmount = decimal.Parse(txtBillAmount.Text);
+            updateBill.BillPeriod = txtBillPeriod.Text;
+            updateBill.BillTitle = txtBillTitle.Text;
+
+            _billService.TUpdate(updateBill);
+
+            MessageBox.Show("Kayıt başarıyla güncellendi.");
+            dataGridView1.DataSource= _billService.TGetActiveBillsDto();
+
         }
 
         private void btnBanksForm_Click(object sender, EventArgs e)
@@ -127,6 +172,25 @@ namespace FinancalCrm
         private void btnExit_Click(object sender, EventArgs e)
         {
             this.Close();
+        }
+
+        private void dataGridView1_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            txtBillId.Text = dataGridView1.Rows[e.RowIndex].Cells[0].Value.ToString();
+            txtBillTitle.Text = dataGridView1.Rows[e.RowIndex].Cells[1].Value.ToString();
+            txtBillAmount.Text = dataGridView1.Rows[e.RowIndex].Cells[2].Value.ToString();
+            txtBillPeriod.Text = dataGridView1.Rows[e.RowIndex].Cells[3].Value.ToString();
+        }
+
+        private void btnList_Click(object sender, EventArgs e)
+        {
+            dataGridView1.DataSource = _billService.TGetActiveBillsDto();
+        }
+
+        private void btnGetDeletedBills_Click(object sender, EventArgs e)
+        {
+            var value = _billService.TGetDeletedBillsDto();
+            dataGridView1.DataSource = value;
         }
     }
 }

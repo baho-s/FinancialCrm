@@ -7,14 +7,21 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using BusinessLayer.Abstract;
+using BusinessLayer.Concrete;
+using DataAccessLayer.EntityFramework;
 using FinancalCrm.Models;
 
 namespace FinancalCrm
 {
     public partial class FrmBankProcesses : Form
     {
+        private readonly IBankProcessService _bankProcessService;
+        private readonly IBankService _bankService;
         public FrmBankProcesses()
         {
+            _bankProcessService = new BankProcessManager(new EfBankProcessDal());
+            _bankService=new BankManager(new EfBankDal());
             InitializeComponent();
         }
 
@@ -22,28 +29,27 @@ namespace FinancalCrm
 
         private void FrmBankProcesses_Load(object sender, EventArgs e)
         {
-            DateTime tarih = DateTime.Now.AddDays(-30);
-            var sonGönderilen = db.BankProcesses.Where(x => x.ProcessDate >= tarih && x.ProcessType.StartsWith("Giden")).Sum(y=>y.Amount);
-            lblTotalSent.Text = sonGönderilen.ToString();
+            var sonGelen3Hav = _bankProcessService.TGetIncomingOrOutgoingTransferDtos("Gelen", 3);
+            var sonGiden3Hav = _bankProcessService.TGetIncomingOrOutgoingTransferDtos("Giden", 3);
+            Label[] labelsGelen = { lblGelen1, lblGelen2, lblGelen3 };
+            Label[] labelsGiden = { lblGiden1, lblGiden2, lblGiden3 };
 
-            var sonGelen = db.BankProcesses.Where(x => x.ProcessDate >= tarih && x.ProcessType.StartsWith("Gelen")).Sum(y => y.Amount);
-            lblTotalComing.Text = sonGelen.ToString();
 
-            var total = db.Banks.Sum(x => x.BankBalance);
+            for (int i = 0;i<sonGelen3Hav.Count || i<sonGiden3Hav.Count;i++)
+            {
+                labelsGelen[i].Text=sonGelen3Hav[i].Sender+": +" + sonGelen3Hav[i].Amount.ToString()+"₺";
+                labelsGiden[i].Text=sonGiden3Hav[i].Sender+": -" + sonGiden3Hav[i].Amount.ToString()+"₺";
+            }
 
-            lblTotalBalance.Text = (total+sonGelen-sonGönderilen).ToString();
+            decimal totalSent = _bankProcessService.TGetLast30DaysTotalAmount("Giden");
+            decimal totalComing = _bankProcessService.TGetLast30DaysTotalAmount("Gelen");
+            decimal totalBalance = _bankService.TGetTotalBalance();
 
-            var sonGiden3 = db.BankProcesses.Where(z => z.ProcessType.StartsWith("Giden")).OrderByDescending(x => x.ProcessDate).Take(3).Select(x => new { x.Sender, x.Amount }).ToList();
+            lblTotalSent.Text = totalSent.ToString();
+            lblTotalComing.Text = totalComing.ToString();
+            lblTotalBalance.Text= (totalBalance + totalComing - totalSent).ToString();
 
-            lblGiden1.Text = sonGiden3[0].Sender + " - " + sonGiden3[0].Amount + " ₺";
-            lblGiden2.Text = sonGiden3[1].Sender + " - " + sonGiden3[1].Amount + " ₺";
-            lblGiden3.Text = sonGiden3[2].Sender + " - " + sonGiden3[2].Amount + " ₺";
-
-            var sonGelen3 = db.BankProcesses.Where(z => z.ProcessType.StartsWith("Gelen")).OrderByDescending(x => x.ProcessDate).Take(3).Select(x => new { x.Sender, x.Amount }).ToList();
-
-            lblGelen1.Text = sonGelen3[0].Sender + " + " + sonGelen3[0].Amount + " ₺";
-            lblGelen2.Text = sonGelen3[1].Sender + " + " + sonGelen3[1].Amount + " ₺";
-            lblGelen3.Text = sonGelen3[2].Sender + " + " + sonGelen3[2].Amount + " ₺";
+            
         }
 
         private void btnCategoriesForm_Click(object sender, EventArgs e)
