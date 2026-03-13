@@ -1,52 +1,24 @@
-## Proje Yapısı
+## BankProcess ve Billing Modüllerinin Güncellenmesi
 
-Proje Windows Forms kullanılarak geliştirilmiştir.  
-Form tabanlı bir yapı kullanılmış olup uygulama içerisinde farklı işlemler için ayrı form ekranları oluşturulmuştur.
+Bu branch içerisinde **FrmBankProcess** ve **FrmBilling** modülleri N Katmanlı Mimariye uygun şekilde yeniden düzenlenmiştir.
 
-- Login Form
-- Dashboard Form
-- Banka İşlemleri Formu
-- Fatura Yönetimi Formu
-- Harcama Yönetimi Formu
-- Kategori Yönetimi Formu
+### Yapılan Güncellemeler
 
-## Kullanılan Teknolojiler
+- FrmBankProcess ve FrmBilling formlarındaki **doğrudan Entity Framework kullanımı kaldırıldı.**
+- Veri işlemleri artık **BusinessLayer servisleri üzerinden** gerçekleştirilmektedir.
+- UI katmanı ile veri erişim katmanı arasındaki bağımlılık azaltılarak **katmanlı mimari yapısına uygun hale getirildi.**
+- **DTO (Data Transfer Object)** yapıları kullanılarak UI katmanına yalnızca gerekli verilerin taşınması sağlandı.
+- **Soft Delete** yaklaşımı uygulanarak silinen verilerin veritabanından tamamen kaldırılmadan yönetilmesi sağlandı.
+- Kullanıcı hatalarını önlemek amacıyla **boş alan kontrolleri** eklendi.
+- İşlemler sırasında oluşabilecek hatalar için **try-catch ile hata yönetimi** mekanizması eklendi.
 
-- C#
-- Windows Forms
-- MSSQL
-- Entity Framework
-- LINQ
-- Chart Control
-- Timer
+### Sonuç
 
-## Özellikler
+Bu düzenlemeler ile:
 
-- Kullanıcı giriş ekranı
-- Kategorilere göre harcama takibi
-- Fatura ekleme, silme ve güncelleme işlemleri
-- Harcama ekleme ve listeleme
-- Banka hesap bakiyelerini görüntüleme
-- Son banka hareketlerini listeleme
-- Dashboard üzerinden finansal özet bilgileri görüntüleme
-- Grafik ile banka ve fatura verilerinin gösterimi
-- Timer kullanılarak bazı alanlarda verilerin otomatik güncellenmesi
-
-## Veritabanı İşlemleri
-
-Projede veritabanı işlemleri için Entity Framework kullanılmıştır.
-
-LINQ sorguları ile:
-
-- Veri listeleme
-- Veri ekleme
-- Veri silme
-- Veri güncelleme
-- Toplam hesaplama
-- Son kayıtları getirme
-- Kategori bazlı filtreleme
-
-işlemleri gerçekleştirilmiştir.
+- Kodun **okunabilirliği ve sürdürülebilirliği artırılmıştır.**
+- Proje mimarisi **UI → BusinessLayer → DataAccessLayer → Database** akışına uygun hale getirilmiştir.
+- Modüller, projenin geri kalan katmanlı mimari yapısı ile **daha uyumlu** çalışacak şekilde güncellenmiştir.
 
 ## Login Ekranı
 ![Login](Images/Login.PNG)
