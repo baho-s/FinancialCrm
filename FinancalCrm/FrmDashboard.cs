@@ -1,4 +1,10 @@
-﻿using System;
+﻿using BusinessLayer.Abstract;
+using BusinessLayer.Concrete;
+using DataAccessLayer.Context;
+using DataAccessLayer.EntityFramework;
+using EntityLayer.Dto;
+using FinancalCrm.Entity.Concrete;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -7,104 +13,134 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using FinancalCrm.Models;
+using System.Windows.Forms.DataVisualization.Charting;
+
 
 namespace FinancalCrm
 {
     public partial class FrmDashboard : Form
     {
+
+        private readonly IBankService _bankService;
+        private readonly IBillService _billService;
+        private readonly IBankProcessService _bankProcessService;
+        private readonly ISpendingService _spendingService;
         public FrmDashboard()
         {
+            _bankService = new BankManager(new EfBankDal());
+            _billService = new BillManager(new EfBillDal());
+            _bankProcessService=new BankProcessManager(new EfBankProcessDal());
+            _spendingService=new SpendingManager(new EfSpendingDal());
             InitializeComponent();
         }
 
-        FinancalCrmDbEntities db=new FinancalCrmDbEntities();
-        int count = 0;
-        
+        private List<BillDto> _billValues;
+        private int _billIndex = 0;
+
+        private List<IncomingTransferDto> _incomingValues;
+        private int _incomingIndex = 0;
+
+        private List<CategorySpendingDto> _spendingValues;
+
+
+
 
         private void FrmDashboard_Load(object sender, EventArgs e)
         {
-            var totalBalance = db.Banks.Sum(x=>x.BankBalance);
-            lblTotalBalance.Text = totalBalance.ToString()+"₺";
+            //Toplam bakiyemizi yazdırdık.
+            lblTotalBalance.Text=_bankService.TGetTotalBalance().ToString()+"₺";
 
-            _ = SonGelenHavaleTutari();
+            //---------------------//
+            // Bu işlemde DTO kullanabilirdik ancak doğrudan Entity kullanarak verileri alıyoruz.
+            // BankService üzerinden Bank entity listesini çekiyoruz.
+            // Entity içindeki tüm propertyler gelir fakat burada sadece gerekli olan
+            // BankTitle ve BankBalance alanlarını kullanarak Chart kontrolüne aktarıyoruz.
+            List<Bank> banks = _bankService.TGetAll();
+            chart1.Series["Series1"].Points.Clear();
 
-            //Chart1 Kodları
-            var bankData = db.Banks.Select(x => new
+            foreach (var bank in banks)
             {
-                x.BankTitle,
-                x.BankBalance
-            }).ToList();
-
-            chart1.Series.Clear();
-            var series = chart1.Series.Add("Series 1");
-
-            foreach (var item in bankData) 
-            { 
-                series.Points.AddXY(item.BankTitle,item.BankBalance);
+                chart1.Series["Series1"].Points.AddXY(bank.BankTitle, bank.BankBalance);
             }
+            //-------------------//
 
-            //chart 2 kodları
-            var billData=db.Bills.Select(x=> new
-            {
-                x.BillTitle,
-                x.BillAmount
-            }).ToList();
+
             
+            _billValues =_billService.TGetBillDtoList();
+            _incomingValues = _bankProcessService.TIncomingTransferAndAmount();
+            _spendingValues=_spendingService.TGetCategorySpendingDtos();
+
             chart2.Series.Clear();
+
             var series2 = chart2.Series.Add("Faturalar");
-            series2.ChartType=System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Renko;
-            foreach (var item in billData)
+            series2.ChartType = SeriesChartType.Pie;
+            series2.IsValueShownAsLabel = true;
+
+            foreach (var value in _spendingValues)
             {
-                series2.Points.AddXY(item.BillTitle, item.BillAmount);
+                series2.Points.AddXY(value.CategoryName, value.TotalSpendingAmount);
             }
+
+
+
 
         }
-
         private void timer1_Tick(object sender, EventArgs e)
         {
-            count++;
-            if (count % 4 == 1)
+            if (_billValues != null && _billValues.Count > 0)
             {
-                var elektrikFaturasi=db.Bills.Where(x=>x.BillTitle== "Elektrik Faturası").Select(y=>y.BillAmount).FirstOrDefault();
-                lblBillTitle.Text = "Elektrik Faturasi";
-                lblBillAmount.Text=elektrikFaturasi.ToString()+"₺";
+                lblBillTitle.Text = _billValues[_billIndex].BillTitle;
+                lblBillAmount.Text = "-"+_billValues[_billIndex].BillAmount.ToString()+"₺";
+                _billIndex++;
+                if (_billIndex >= _billValues.Count)
+                {
+                    _billIndex = 0;
+                }
             }
-            if (count % 4 == 2)
+
+            if (_incomingValues != null && _incomingValues.Count > 0)
             {
-                var dogalgazFaturasi = db.Bills.Where(x => x.BillTitle == "Doğalgaz Faturası").Select(y => y.BillAmount).FirstOrDefault();
-                lblBillTitle.Text = "Doğalgaz Faturasi";
-                lblBillAmount.Text = dogalgazFaturasi.ToString() + "₺";
-            }
-            if (count % 4 == 3)
-            {
-                var suFaturasi = db.Bills.Where(x => x.BillTitle == "Su Faturası").Select(y => y.BillAmount).FirstOrDefault();
-                lblBillTitle.Text = "Su Faturası";
-                lblBillAmount.Text = suFaturasi.ToString() + "₺";
-            }
-            if (count % 4 == 0)
-            {
-                var internetFaturasi = db.Bills.Where(x => x.BillTitle == "İnternet Faturası").Select(y => y.BillAmount).FirstOrDefault();
-                lblBillTitle.Text = "İnternet Faturası";
-                lblBillAmount.Text = internetFaturasi.ToString() + "₺";
+                lblGelenHavale.Text = "Gönderen: "+_incomingValues[_incomingIndex].Sender;
+                lblHavaleTutarı.Text = "+"+_incomingValues[_incomingIndex].Amount.ToString()+"₺";
+                _incomingIndex++;
+                if (_incomingIndex >= _incomingValues.Count)
+                {
+                    _incomingIndex = 0;
+                }
+
             }
         }
-        
-        public async Task SonGelenHavaleTutari()
-        {
-            List<int> sonGelenHavale = db.BankProcesses.Select(x => x.BankProcessId).ToList();
 
-            for (int i = 1; i < sonGelenHavale.Count; i++)
-            {
-                int index = sonGelenHavale[i];
-                var value = db.BankProcesses.Where(x => x.BankProcessId == index).Select(y=>y.Amount).FirstOrDefault();
+        //public async Task GelenFaturalar()
+        //{
+        //    List<BillDto> values = _billService.TGetBillDtoList();
 
-                lblHavaleTutarı.Text = value.ToString();
-                await Task.Delay(1000);
-            }
-            await SonGelenHavaleTutari();
+        //    while (true)
+        //    {
+        //        for (int i = 0; i < values.Count; i++)
+        //        {
+        //            lblBillTitle.Text = values[i].BillTitle;
+        //            lblBillAmount.Text = values[i].BillAmount.ToString();
+        //            await Task.Delay(1000);
+        //        }
+        //    }
 
-        }
+        //}
+
+        //public async Task SonGelenHavaleTutari()
+        //{
+        //    List<IncomingTransferDto> values = _bankProcessService.TIncomingTransferAndAmount();
+
+        //    while (true)
+        //    {
+        //        for (int i = 0; i < values.Count; i++)
+        //        {
+        //            lblGelenHavale.Text = values[i].Sender;
+        //            lblHavaleTutarı.Text = values[i].Amount.ToString();
+        //            await Task.Delay(1000);
+        //        }
+        //    }
+        //}
 
         private void btnBanksForm_Click(object sender, EventArgs e)
         {
@@ -150,5 +186,6 @@ namespace FinancalCrm
         {
             this.Close();
         }
+
     }
 }
